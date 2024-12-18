@@ -1,0 +1,23 @@
+msgid ""
+msgstr ""
+"Project-Id-Version: Relais Colis WooCommerce 1.0\n"
+"POT-Creation-Date: 2024-11-27 15:35+0200\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+0200\n"
+"Last-Translator: Calliweb <pierre@calliweb.fr>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"X-Generator: GlotPress 2.4.0-alpha\n"
+"Language: fr_FR\n"
+"X-Domain: relais-colis-woocommerce\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+msgid "Configurations Relais Colis"
+msgstr ""
+
+msgid "Clé d'activation."
+msgstr ""
+
+msgid "Saisissez votre clé d'activation Relais Colis."
+msgstr ""
