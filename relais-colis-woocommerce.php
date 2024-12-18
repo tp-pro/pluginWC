@@ -26,8 +26,7 @@ function rc_load_textdomain() {
  * @param $settings
  * @return mixed
  */
-function rc_add_settings_tab($settings): mixed
-{
+function rc_add_settings_tab(array $settings): array {
     $settings[] = include 'includes/class-rc-settings.php';
     return $settings;
 }
