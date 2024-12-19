@@ -379,7 +379,7 @@ class RC_Settings_Page {
                     'title'    => __('Format d’étiquette', 'relais-colis-woocommerce'),
                     'desc'     => __('Choisissez le format d’étiquette à imprimer.', 'relais-colis-woocommerce'),
                     'id'       => 'rc_label_format',
-                    'type'     => 'radio',
+                    'type'     => 'select',
                     'options'  => [
                         'A4' => __('Format A4', 'relais-colis-woocommerce'),
                         'A5' => __('Format A5', 'relais-colis-woocommerce'),
