@@ -339,17 +339,38 @@ class RC_Settings_Page {
                     'type'     => 'checkbox',
                 ],
 
-                // Unités de Mesure
+                // Unités de poids
                 [
-                    'title'    => __('Unités de Mesure', 'relais-colis-woocommerce'),
-                    'desc'     => __('Sélectionnez les unités de poids et de taille.', 'relais-colis-woocommerce'),
-                    'id'       => 'rc_units',
+                    'title'    => __('Unités de poids', 'relais-colis-woocommerce'),
+                    'desc'     => __('Sélectionnez l\'unité de poids à utiliser.', 'relais-colis-woocommerce'),
+                    'id'       => 'rc_weight_unit',
                     'type'     => 'select',
                     'options'  => [
-                        'kg_m' => __('Kilogrammes et mètres', 'relais-colis-woocommerce'),
-                        'lb_in' => __('Livres et pouces', 'relais-colis-woocommerce'),
+                        'g' => __('Grammes (g)', 'relais-colis-woocommerce'),
+                        'dg' => __('Décigrammes (dg)', 'relais-colis-woocommerce'),
+                        'kg' => __('Kilogrammes (kg)', 'relais-colis-woocommerce'),
+                        'lb' => __('Livres (lb)', 'relais-colis-woocommerce'),
                     ],
-                    'default'  => 'kg_m',
+                    'default'  => 'g',
+                    'class'    => 'wc-enhanced-select',
+                    'desc_tip' => true,
+                ],
+
+                // Unités de longueur
+                [
+                    'title'    => __('Unités de longueur', 'relais-colis-woocommerce'),
+                    'desc'     => __('Sélectionnez l\'unité de longueur à utiliser.', 'relais-colis-woocommerce'),
+                    'id'       => 'rc_length_unit',
+                    'type'     => 'select',
+                    'options'  => [
+                        'mm' => __('Millimètres (mm)', 'relais-colis-woocommerce'),
+                        'cm' => __('Centimètres (cm)', 'relais-colis-woocommerce'),
+                        'dm' => __('Décimètres (dm)', 'relais-colis-woocommerce'),
+                        'm' => __('Mètres (m)', 'relais-colis-woocommerce'),
+                        'in' => __('Pouces (in)', 'relais-colis-woocommerce'),
+                    ],
+                    'default'  => 'cm',
+                    'class'    => 'wc-enhanced-select',
                     'desc_tip' => true,
                 ],
 
