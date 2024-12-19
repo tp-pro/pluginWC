@@ -13,7 +13,7 @@ class RC_Settings_Page {
         add_action( 'woocommerce_admin_field_rc_offres_livraison', __CLASS__ . '::render_offres_livraison');
 
         // Add custom type for button
-        add_action( 'woocommerce_admin_field_rc_validate_button', __CLASS__ . '::render_validate_button' );
+        add_action( 'woocommerce_admin_field_rc_action_buttons', __CLASS__ . '::render_action_buttons' );
 
         // Add custom AJAX action for API key validation
         add_action('wp_ajax_validate_rc_api_key', __CLASS__ . '::validate_api_key');
@@ -263,7 +263,7 @@ class RC_Settings_Page {
     }
 
 
-    public static function render_validate_button( $value ) {
+    public static function render_action_buttons( $value ) {
         echo '<button type="button" id="rc-refresh-info" class="button">' . esc_html__('Rafraîchir les informations', 'relais-colis-woocommerce') . '</button>';
         echo '<button type="button" id="rc-extract-info" class="button">' . esc_html__('Extraire les informations', 'relais-colis-woocommerce') . '</button>';
         echo '<div id="rc-client-info" style="margin-top: 10px;"></div>';
@@ -329,42 +329,44 @@ class RC_Settings_Page {
                 'type'  => 'title',
                 'id'    => 'rc_settings_title',
             ],
-            [
-                'title'    => __('Mode Live/Test', 'relais-colis-woocommerce'),
-                'desc'     => __('Basculer entre le mode Live (coché) et Test (décoché).', 'relais-colis-woocommerce'),
-                'id'       => 'rc_mode_test',
-                'default'  => 'no',
-                'type'     => 'checkbox',
-            ],
 
-            // Unités de Mesure
-            [
-                'title'    => __('Unités de Mesure', 'relais-colis-woocommerce'),
-                'desc'     => __('Sélectionnez les unités de poids et de taille.', 'relais-colis-woocommerce'),
-                'id'       => 'rc_units',
-                'type'     => 'select',
-                'options'  => [
-                    'kg_m' => __('Kilogrammes et mètres', 'relais-colis-woocommerce'),
-                    'lb_in' => __('Livres et pouces', 'relais-colis-woocommerce'),
+                // Mode Live/Test
+                [
+                    'title'    => __('Mode Live/Test', 'relais-colis-woocommerce'),
+                    'desc'     => __('Basculer entre le mode Live (coché) et Test (décoché).', 'relais-colis-woocommerce'),
+                    'id'       => 'rc_mode_test',
+                    'default'  => 'no',
+                    'type'     => 'checkbox',
                 ],
-                'default'  => 'kg_m',
-                'desc_tip' => true,
-            ],
 
-            // Format d’étiquette
-            [
-                'title'    => __('Format d’étiquette', 'relais-colis-woocommerce'),
-                'desc'     => __('Choisissez le format d’étiquette à imprimer.', 'relais-colis-woocommerce'),
-                'id'       => 'rc_label_format',
-                'type'     => 'radio',
-                'options'  => [
-                    'A4' => __('Format A4', 'relais-colis-woocommerce'),
-                    'A5' => __('Format A5', 'relais-colis-woocommerce'),
-                    'carre' => __('Format Carré', 'relais-colis-woocommerce'),
-                    '10x15' => __('Format 10x15', 'relais-colis-woocommerce'),
+                // Unités de Mesure
+                [
+                    'title'    => __('Unités de Mesure', 'relais-colis-woocommerce'),
+                    'desc'     => __('Sélectionnez les unités de poids et de taille.', 'relais-colis-woocommerce'),
+                    'id'       => 'rc_units',
+                    'type'     => 'select',
+                    'options'  => [
+                        'kg_m' => __('Kilogrammes et mètres', 'relais-colis-woocommerce'),
+                        'lb_in' => __('Livres et pouces', 'relais-colis-woocommerce'),
+                    ],
+                    'default'  => 'kg_m',
+                    'desc_tip' => true,
                 ],
-                'default'  => 'A4',
-            ],
+
+                // Format d’étiquette
+                [
+                    'title'    => __('Format d’étiquette', 'relais-colis-woocommerce'),
+                    'desc'     => __('Choisissez le format d’étiquette à imprimer.', 'relais-colis-woocommerce'),
+                    'id'       => 'rc_label_format',
+                    'type'     => 'radio',
+                    'options'  => [
+                        'A4' => __('Format A4', 'relais-colis-woocommerce'),
+                        'A5' => __('Format A5', 'relais-colis-woocommerce'),
+                        'carre' => __('Format Carré', 'relais-colis-woocommerce'),
+                        '10x15' => __('Format 10x15', 'relais-colis-woocommerce'),
+                    ],
+                    'default'  => 'A4',
+                ],
 
             [
                 'type' => 'sectionend',
@@ -372,27 +374,27 @@ class RC_Settings_Page {
             ],
 
             // Section : Tarification
-
             [
                 'title' => __('Tarification', 'relais-colis-woocommerce'),
                 'type'  => 'title',
                 'id'    => 'rc_tarification_title',
             ],
-            // Offre de livraison
-            [
-                'title' => __('Offres de livraison', 'relais-colis-woocommerce'),
-                'type' => 'rc_offres_livraison',
-                'desc'  => __('Ajoutez des offres avec un seuil de gratuité.', 'relais-colis-woocommerce'),
-                'id'   => 'rc_offres_livraison',
-            ],
 
-            // Grille tarifaire
-            [
-                'title' => __('Grille Tarifaire', 'relais-colis-woocommerce'),
-                'type' => 'rc_grille_tarifaire',
-                'desc'  => __('Définissez des tranches tarifaires basées sur le poids ou la valeur totale.', 'relais-colis-woocommerce'),
-                'id'   => 'rc_grille_tarifaire',
-            ],
+                // Offre de livraison
+                [
+                    'title' => __('Offres de livraison', 'relais-colis-woocommerce'),
+                    'type' => 'rc_offres_livraison',
+                    'desc'  => __('Ajoutez des offres avec un seuil de gratuité.', 'relais-colis-woocommerce'),
+                    'id'   => 'rc_offres_livraison',
+                ],
+
+                // Grille tarifaire
+                [
+                    'title' => __('Grille Tarifaire', 'relais-colis-woocommerce'),
+                    'type' => 'rc_grille_tarifaire',
+                    'desc'  => __('Définissez des tranches tarifaires basées sur le poids ou la valeur totale.', 'relais-colis-woocommerce'),
+                    'id'   => 'rc_grille_tarifaire',
+                ],
 
             [
                 'type' => 'sectionend',
@@ -406,75 +408,88 @@ class RC_Settings_Page {
                 'desc'  => __('Entrez votre clé d’activation pour synchroniser vos informations.', 'relais-colis-woocommerce'),
                 'id'    => 'rc_informations_title',
             ],
-            [
-                'title'    => __('Type de clé d’activation', 'relais-colis-woocommerce'),
-                'id'       => 'rc_api_key_type',
-                'type'     => 'radio',
-                'options'  => [
-                    'B2C' => __('B2C', 'relais-colis-woocommerce'),
-                    'C2C' => __('C2C', 'relais-colis-woocommerce'),
-                ],
-                'default'  => 'B2C',
-                'desc_tip' => __('Type de clé d’activation B2C ou C2C.', 'relais-colis-woocommerce'),
-            ],
-            [
-                'title'    => __('Clé d’activation', 'relais-colis-woocommerce'),
-                'id'       => 'rc_api_key',
-                'type'     => 'text',
-                'default'  => '',
-                'desc_tip' => __('Votre clé d’activation C2C ou B2C.', 'relais-colis-woocommerce'),
-            ],
-            [
-                'type' => 'rc_validate_button',
-                'id'   => 'rc_refresh_button',
-            ],
 
-            // Section : Options B2C
-            [
-                'title' => __('Options B2C', 'relais-colis-woocommerce'),
-                'type'  => 'title',
-                'desc'  => __('Configurez les options incluses votre compte B2C.', 'relais-colis-woocommerce'),
-                'id'    => 'rc_b2c_options_title',
-            ],
-            [
-                'title'    => __('Liste de Produits', 'relais-colis-woocommerce'),
-                'id'       => 'rc_b2c_product_list',
-                'type'     => 'multiselect',
-                'options'  => [
-                    'product_a' => 'Produit A',
-                    'product_b' => 'Produit B',
-                    'product_c' => 'Produit C',
+                // Type de clé API
+                [
+                    'title'    => __('Type de clé d’activation', 'relais-colis-woocommerce'),
+                    'id'       => 'rc_api_key_type',
+                    'type'     => 'radio',
+                    'options'  => [
+                        'B2C' => __('B2C', 'relais-colis-woocommerce'),
+                        'C2C' => __('C2C', 'relais-colis-woocommerce'),
+                    ],
+                    'default'  => 'B2C',
+                    'desc_tip' => __('Type de clé d’activation B2C ou C2C.', 'relais-colis-woocommerce'),
                 ],
-            ],
-            [
-                'title'    => __('Méthodes de livraison', 'relais-colis-woocommerce'),
-                'id'       => 'rc_b2c_shipping_methods',
-                'type'     => 'multiselect',
-                'options'  => [
-                    'rendez_vous'        => 'Prise de rendez-vous',
-                    'etage'              => 'Livraison à l’étage',
-                    'a_deux'             => 'Livraison à deux',
-                    'mes_electro'        => 'M.E.S gros électroménager',
-                    'assemblage'         => 'Assemblage rapide',
-                    'hors_norme'         => 'Hors Norme',
-                    'deballage'          => 'Déballage produit',
-                    'evacuation'         => 'Evacuation Emballage',
-                    'ancien_materiel'    => 'Reprise ancien matériel',
-                    'piece_souhaitee'    => 'Livraison dans la pièce souhaitée',
-                    'pas_de_porte'       => 'Livraison au pas de porte',
+
+                // Clé d'activation
+                [
+                    'title'    => __('Clé d’activation', 'relais-colis-woocommerce'),
+                    'id'       => 'rc_api_key',
+                    'type'     => 'text',
+                    'default'  => '',
+                    'desc_tip' => __('Votre clé d’activation C2C ou B2C.', 'relais-colis-woocommerce'),
                 ],
-            ],
-            [
-                'title'    => __('Attribution de Prix', 'relais-colis-woocommerce'),
-                'id'       => 'rc_b2c_pricing',
-                'type'     => 'text',
-                'default'  => '',
-                'desc'     => __('Par défaut offert', 'relais-colis-woocommerce'),
-            ],
-            [
-                'type' => 'sectionend',
-                'id'   => 'rc_b2c_section_end',
-            ],
+
+                // Boutons Extraire et rafraichir
+                [
+                    'type' => 'rc_action_buttons',
+                    'id'   => 'rc_action_buttons',
+                ],
+
+                // Section : Options B2C
+                [
+                    'title' => __('Options B2C', 'relais-colis-woocommerce'),
+                    'type'  => 'title',
+                    'desc'  => __('Configurez les options incluses votre compte B2C.', 'relais-colis-woocommerce'),
+                    'id'    => 'rc_b2c_options_title',
+                ],
+
+                    // Liste produits
+                    [
+                        'title'    => __('Liste de Produits', 'relais-colis-woocommerce'),
+                        'id'       => 'rc_b2c_product_list',
+                        'type'     => 'multiselect',
+                        'options'  => [
+                            'product_a' => 'Produit A',
+                            'product_b' => 'Produit B',
+                            'product_c' => 'Produit C',
+                        ],
+                    ],
+
+                    // Méthodes de livraison
+                    [
+                        'title'    => __('Méthodes de livraison', 'relais-colis-woocommerce'),
+                        'id'       => 'rc_b2c_shipping_methods',
+                        'type'     => 'multiselect',
+                        'options'  => [
+                            'rendez_vous'        => 'Prise de rendez-vous',
+                            'etage'              => 'Livraison à l’étage',
+                            'a_deux'             => 'Livraison à deux',
+                            'mes_electro'        => 'M.E.S gros électroménager',
+                            'assemblage'         => 'Assemblage rapide',
+                            'hors_norme'         => 'Hors Norme',
+                            'deballage'          => 'Déballage produit',
+                            'evacuation'         => 'Evacuation Emballage',
+                            'ancien_materiel'    => 'Reprise ancien matériel',
+                            'piece_souhaitee'    => 'Livraison dans la pièce souhaitée',
+                            'pas_de_porte'       => 'Livraison au pas de porte',
+                        ],
+                    ],
+
+                    // Attribution de prix
+                    [
+                        'title'    => __('Attribution de Prix', 'relais-colis-woocommerce'),
+                        'id'       => 'rc_b2c_pricing',
+                        'type'     => 'text',
+                        'default'  => '',
+                        'desc'     => __('Par défaut offert', 'relais-colis-woocommerce'),
+                    ],
+
+                [
+                    'type' => 'sectionend',
+                    'id'   => 'rc_b2c_section_end',
+                ],
 
             [
                 'type' => 'sectionend',
