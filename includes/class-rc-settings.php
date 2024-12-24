@@ -10,9 +10,10 @@ class RC_Settings_Page {
         add_action( 'woocommerce_settings_tabs_rc_settings', __CLASS__ . '::settings_tab' );
         add_action( 'woocommerce_sections_rc_settings', __CLASS__ . '::output_sections' );
         add_action( 'woocommerce_update_options_rc_settings', __CLASS__ . '::update_settings' );
+        add_action( 'woocommerce_admin_field_rc_grilles_tarifaires', __CLASS__ . '::render_grilles_tarifaires');
+        add_action( 'woocommerce_admin_field_rc_prestations', __CLASS__ . '::render_prestations');
 
-        // Custom fields for sections
-        add_action( 'woocommerce_admin_field_rc_prestations', __CLASS__ . '::render_prestations' );
+        // Add custom type for button
         add_action( 'woocommerce_admin_field_rc_action_buttons', __CLASS__ . '::render_action_buttons' );
 
         // Add custom AJAX action for API key validation
@@ -29,6 +30,7 @@ class RC_Settings_Page {
                 isset($_GET['tab']) && $_GET['tab'] === 'rc_settings') {
 
                 wp_enqueue_script( 'rc-api-validation', plugin_dir_url( __FILE__ ) . '../assets/js/api-validation.js', array('jquery'), '1.0.0', true );
+                wp_enqueue_style( 'rc-syles', plugin_dir_url( __FILE__ ) . '../assets/css/relais-colis.css');
 
                 // Passer le nonce au script JS
                 wp_localize_script( 'rc-api-validation', 'rc_ajax', [
@@ -130,52 +132,411 @@ class RC_Settings_Page {
 
         if ( '' === $current_section ) {
             woocommerce_update_options( self::get_general_settings() );
-        } if ('prestations' === $current_section) {
-            // Vérifiez si le formulaire des prestations est soumis
-            if (isset($_POST['prestations']) && is_array($_POST['prestations'])) {
-                $prestations = [];
-
-                // Parcours des prestations soumises pour validation
-                foreach ($_POST['prestations'] as $index => $prestation) {
-                    $client = isset($prestation['client']) ? 1 : 0;
-                    $produits = isset($prestation['produits']) && is_array($prestation['produits'])
-                        ? array_map('sanitize_text_field', $prestation['produits'])
-                        : [];
-                    $livraison = isset($prestation['livraison']) && is_array($prestation['livraison'])
-                        ? array_map('sanitize_text_field', $prestation['livraison'])
-                        : [];
-                    $actif = isset($prestation['actif']) ? 1 : 0;
-                    $prix = isset($prestation['prix']) ? floatval($prestation['prix']) : 0;
-
-                    // Validation des grilles tarifaires
-                    $grilles = [];
-                    if (isset($prestation['grilles']) && is_array($prestation['grilles'])) {
-                        foreach ($prestation['grilles'] as $grille) {
-                            $grilles[] = [
-                                'min' => isset($grille['min']) ? intval($grille['min']) : 0,
-                                'max' => isset($grille['max']) ? intval($grille['max']) : 0,
-                                'prix' => isset($grille['prix']) ? floatval($grille['prix']) : 0,
-                            ];
+        } elseif ( 'prestations' === $current_section ) {
+            // Sauvegarde des grilles tarifaires
+            if (isset($_POST['grilles']) && is_array($_POST['grilles'])) {
+                $grilles_data = [];
+                foreach ($_POST['grilles'] as $grille_index => $grille) {
+                    if (!empty($grille['prestation_name']) && !empty($grille['critere'])) {
+                        $lines = [];
+                        if (isset($grille['lines']) && is_array($grille['lines'])) {
+                            foreach ($grille['lines'] as $line_index => $line) {
+                                if (isset($line['min'], $line['max'], $line['price'])) {
+                                    $lines[] = [
+                                        'min' => sanitize_text_field($line['min']),
+                                        'max' => sanitize_text_field($line['max']),
+                                        'price' => sanitize_text_field($line['price']),
+                                    ];
+                                }
+                            }
                         }
+                        $grilles_data[] = [
+                            'method_name' => sanitize_text_field($grille['method_name']), // Enregistrement du nouveau champ
+                            'prestation_name' => sanitize_text_field($grille['prestation_name']),
+                            'critere' => sanitize_text_field($grille['critere']),
+                            'lines' => $lines,
+                        ];
                     }
-
-                    // Ajout de la prestation validée au tableau final
-                    $prestations[] = [
-                        'client' => $client,
-                        'produits' => $produits,
-                        'livraison' => $livraison,
-                        'actif' => $actif,
-                        'prix' => $prix,
-                        'grilles' => $grilles,
-                    ];
                 }
-
-                // Enregistrement des prestations dans l'option WordPress
-                update_option('rc_prestations', $prestations);
+                update_option('rc_grilles_tarifaires', wp_json_encode($grilles_data));
             }
-        }  elseif ( 'informations' === $current_section ) {
+            // Sauvegarde des prestations
+            if (isset($_POST['delivery_method'])) {
+                $prestations_data = [];
+                foreach ($_POST['delivery_method'] as $index => $method) {
+                    if ($_POST['prestation_deleted'][$index] === '0') {
+                        $prestations_data[] = [
+                            'name'          => sanitize_text_field($_POST['prestation_name'][$index]),
+                            'client_choice' => sanitize_text_field($_POST['client_choice'][$index]),
+                            'method'        => sanitize_text_field($method),
+                            'active'        => isset($_POST['active'][$index]) ? 'yes' : 'no',
+                            'price'         => sanitize_text_field($_POST['price'][$index]),
+                        ];
+                    }
+                }
+                update_option('rc_prestations', wp_json_encode($prestations_data));
+            }
+        } elseif ( 'informations' === $current_section ) {
             woocommerce_update_options( self::get_informations_settings() );
         }
+    }
+
+
+    public static function render_grilles_tarifaires($section) {
+        $saved_grilles = get_option('rc_grilles_tarifaires', '[]');
+        $saved_grilles = json_decode($saved_grilles, true) ?: [];
+
+        ?>
+        <div id="rc-grilles-tarifaires">
+            <button type="button" id="add-grille" class="button button-secondary">
+                <?php _e('Ajouter une grille tarifaire', 'relais-colis-woocommerce'); ?>
+            </button>
+            <div id="grilles-container">
+                <?php foreach ($saved_grilles as $grille_index => $grille): ?>
+                    <?php self::render_single_grille($grille_index, $grille); ?>
+                <?php endforeach; ?>
+            </div>
+        </div>
+        <script>
+            jQuery(document).ready(function($) {
+                let grilleIndex = $("#grilles-container .grille-container").length;
+
+                // Ajouter une nouvelle grille
+                $("#add-grille").click(function() {
+                    const newGrille = <?= json_encode(self::render_single_grille_template()); ?>;
+                    $("#grilles-container").append(newGrille.replace(/__INDEX__/g, grilleIndex));
+                    grilleIndex++;
+                });
+
+                // Ajouter une nouvelle ligne
+                $(document).on("click", ".add-line", function() {
+                    const parent = $(this).closest(".grille-container");
+                    const grilleIndex = parent.data("index");
+                    const lineIndex = parent.find(".line-row").length;
+                    const newLine = <?= json_encode(self::render_single_grille__line_template()); ?>;
+                    parent.find(".lines-container").append(
+                        newLine.replace(/__GRILLE_INDEX__/g, grilleIndex).replace(/__LINE_INDEX__/g, lineIndex)
+                    );
+                });
+
+                // Supprimer une ligne
+                $(document).on("click", ".remove-line", function() {
+                    $(this).closest(".line-row").remove();
+                });
+
+                // Supprimer une grille
+                $(document).on("click", ".remove-grille", function() {
+                    $(this).closest(".grille-container").remove();
+                });
+            });
+        </script>
+        <?php
+    }
+
+
+
+
+    private static function render_single_grille($grille_index, $grille) {
+        $prestations = get_option('rc_prestations', '[]');
+        $prestations = json_decode($prestations, true) ?: [];
+        ?>
+        <div class="grille-container" data-index="<?= $grille_index; ?>">
+            <button type="button" class="remove-grille">❌</button>
+            <div class="grille-header">
+                <div class="line-g">
+                    <label><?php _e('Méthode de livraison', 'relais-colis-woocommerce'); ?></label>
+                    <input type="text" name="grilles[<?= $grille_index; ?>][method_name]" value="<?= esc_attr($grille['method_name'] ?? ''); ?>" placeholder="<?php _e('Méthode livraison', 'relais-colis-woocommerce'); ?>">
+                </div>
+                <div class="line-g">
+                    <label><?php _e('Prestation associée', 'relais-colis-woocommerce'); ?></label>
+                    <select name="grilles[<?= $grille_index; ?>][prestation_name]">
+                        <option value=""><?php _e('Sélectionner une prestation', 'relais-colis-woocommerce'); ?></option>
+                        <?php foreach ($prestations as $prestation): ?>
+                            <option value="<?= esc_attr($prestation['name']); ?>" <?php selected($grille['prestation_name'] ?? '', $prestation['name']); ?>>
+                                <?= esc_html($prestation['name']); ?>
+                            </option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="line-g">
+                    <label><?php _e('Critère', 'relais-colis-woocommerce'); ?></label>
+                    <select name="grilles[<?= $grille_index; ?>][critere]">
+                        <option value="weight" <?php selected($grille['critere'] ?? '', 'weight'); ?>><?php _e('Poids', 'relais-colis-woocommerce'); ?></option>
+                        <option value="price" <?php selected($grille['critere'] ?? '', 'price'); ?>><?php _e('Valeur totale', 'relais-colis-woocommerce'); ?></option>
+                    </select>
+                </div>
+            </div>
+            <div class="lines-container">
+                <?php foreach ($grille['lines'] ?? [] as $line_index => $line): ?>
+                    <?php self::render_single_grille__line($grille_index, $line_index, $line); ?>
+                <?php endforeach; ?>
+            </div>
+            <button type="button" class="add-line button button-secondary"><?php _e('Ajouter une ligne', 'relais-colis-woocommerce'); ?></button>
+        </div>
+        <?php
+    }
+
+
+
+    private static function render_single_grille__line($grille_index, $line_index, $line) {
+        ?>
+        <div class="line-row">
+            <input type="number" name="grilles[<?= $grille_index; ?>][lines][<?= $line_index; ?>][min]" value="<?= esc_attr($line['min'] ?? ''); ?>" placeholder="Min">
+            <input type="number" name="grilles[<?= $grille_index; ?>][lines][<?= $line_index; ?>][max]" value="<?= esc_attr($line['max'] ?? ''); ?>" placeholder="Max">
+            <input type="number" step="0.01" name="grilles[<?= $grille_index; ?>][lines][<?= $line_index; ?>][price]" value="<?= esc_attr($line['price'] ?? ''); ?>" placeholder="Prix">
+            <button type="button" class="remove-line">❌</button>
+        </div>
+        <?php
+    }
+
+    private static function render_single_grille_template() {
+        $prestations = get_option('rc_prestations', '[]');
+        $prestations = json_decode($prestations, true) ?: [];
+
+        ob_start();
+        ?>
+        <div class="grille-container" data-index="__INDEX__">
+            <button type="button" class="remove-grille">❌</button>
+            <div class="grille-header">
+                <div class="line-g">
+                    <label><?php _e('Méthode de livraison', 'relais-colis-woocommerce'); ?></label>
+                    <input type="text" name="grilles[__INDEX__][method_name]" placeholder="<?php _e('Exemple : Livraison à domicile', 'relais-colis-woocommerce'); ?>">
+                </div>
+                <div class="line-g">
+                    <label><?php _e('Prestation associée', 'relais-colis-woocommerce'); ?></label>
+                    <select name="grilles[__INDEX__][prestation_name]">
+                        <option value=""><?php _e('Sélectionner une prestation', 'relais-colis-woocommerce'); ?></option>
+                        <?php foreach ($prestations as $prestation): ?>
+                            <option value="<?= esc_attr($prestation['name']); ?>"><?= esc_html($prestation['name']); ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                </div>
+                <div class="line-g">
+                    <label><?php _e('Critère', 'relais-colis-woocommerce'); ?></label>
+                    <select name="grilles[__INDEX__][critere]">
+                        <option value="weight"><?php _e('Poids', 'relais-colis-woocommerce'); ?></option>
+                        <option value="price"><?php _e('Valeur totale', 'relais-colis-woocommerce'); ?></option>
+                    </select>
+                </div>
+            </div>
+            <div class="lines-container"></div>
+            <button type="button" class="add-line button button-secondary"><?php _e('Ajouter une ligne', 'relais-colis-woocommerce'); ?></button>
+        </div>
+        <?php
+        return ob_get_clean();
+    }
+
+
+    private static function render_single_grille__line_template() {
+        ob_start();
+        ?>
+            <div class="line-row">
+                <input type="number" name="grilles[__GRILLE_INDEX__][lines][__LINE_INDEX__][min]" placeholder="Min">
+                <input type="number" name="grilles[__GRILLE_INDEX__][lines][__LINE_INDEX__][max]" placeholder="Max">
+                <input type="number" step="0.01" name="grilles[__GRILLE_INDEX__][lines][__LINE_INDEX__][price]" placeholder="Prix">
+                <button type="button" class="remove-line">❌</button>
+            </div>
+        <?php
+        return ob_get_clean();
+    }
+
+
+
+    public static function render_prestations($section) {
+        $saved_prestations = get_option('rc_prestations', '[]');
+        $saved_prestations = json_decode($saved_prestations, true);
+
+        if (!is_array($saved_prestations)) {
+            $saved_prestations = [];
+        }
+        ?>
+        <div id="rc-prestations-editor">
+            <button type="button" id="add-prestation" class="button button-secondary"><?php _e('Ajouter une prestation', 'relais-colis-woocommerce'); ?></button>
+            <div id="prestations-container">
+                <?php foreach ($saved_prestations as $index => $prestation): ?>
+                    <?php self::render_single_prestation($index, $prestation); ?>
+                <?php endforeach; ?>
+            </div>
+        </div>
+        <script>
+            jQuery(document).ready(function($) {
+                let prestationIndex = $("#prestations-container .prestation-container").length;
+
+                $("#add-prestation").click(function() {
+                    const newPrestation = `<?php self::render_single_prestation_template(); ?>`;
+                    $("#prestations-container").append(newPrestation.replace(/__INDEX__/g, prestationIndex));
+                    prestationIndex++;
+                });
+
+                $(document).on("click", ".remove-prestation", function() {
+                    const container = $(this).closest(".prestation-container");
+                    container.find("[name^='prestation_deleted']").val("1");
+                    container.hide();
+                });
+            });
+        </script>
+        <?php
+    }
+
+
+    private static function render_single_prestation($index, $prestation) {
+        $name = esc_attr($prestation['name'] ?? '');
+        $client_choice = esc_attr($prestation['client_choice'] ?? '');
+        $method = esc_attr($prestation['method'] ?? '');
+        $active = isset($prestation['active']) && $prestation['active'] === 'yes' ? 'checked' : '';
+        $price = esc_attr($prestation['price'] ?? '');
+        ?>
+        <div class="prestation-container" data-index="<?= $index; ?>">
+            <button type="button" class="remove-prestation">❌</button>
+            <div class="line-g">
+                <label><?php _e('Nom de la prestation', 'relais-colis-woocommerce'); ?></label>
+                <input type="text" name="prestation_name[<?= $index; ?>]" value="<?= $name; ?>" placeholder="<?php _e('Nom', 'relais-colis-woocommerce'); ?>">
+            </div>
+
+            <div class="line-g">
+                <label><?php _e('Choix du client', 'relais-colis-woocommerce'); ?></label>
+                <select name="client_choice[<?= $index; ?>]">
+                    <option value="option1" <?php selected($client_choice, 'option1'); ?>><?php _e('Option 1', 'relais-colis-woocommerce'); ?></option>
+                    <option value="option2" <?php selected($client_choice, 'option2'); ?>><?php _e('Option 2', 'relais-colis-woocommerce'); ?></option>
+                </select>
+            </div>
+
+            <div class="line-g">
+                <label><?php _e('Méthode de livraison', 'relais-colis-woocommerce'); ?></label>
+                <select name="delivery_method[<?= $index; ?>]">
+                    <option value="relais" <?php selected($method, 'relais'); ?>><?php _e('Relais', 'relais-colis-woocommerce'); ?></option>
+                    <option value="domicile" <?php selected($method, 'domicile'); ?>><?php _e('Domicile', 'relais-colis-woocommerce'); ?></option>
+                </select>
+            </div>
+
+            <div class="line-g">
+                <label><?php _e('Actif', 'relais-colis-woocommerce'); ?></label>
+                <input type="checkbox" name="active[<?= $index; ?>]" value="yes" <?= $active; ?>>
+            </div>
+
+            <div class="line-g">
+                <label><?php _e('Prix', 'relais-colis-woocommerce'); ?></label>
+                <input type="text" name="price[<?= $index; ?>]" value="<?= $price; ?>" placeholder="<?php _e('Prix en €', 'relais-colis-woocommerce'); ?>">
+            </div>
+
+            <input type="hidden" name="prestation_deleted[<?= $index; ?>]" value="0">
+        </div>
+        <?php
+    }
+
+
+    private static function render_single_prestation_template() {
+    ?>
+        <div class="prestation-container" data-index="__INDEX__">
+            <button type="button" class="remove-prestation">❌</button>
+
+            <div class="line-g">
+
+            <label><?php _e('Nom de la prestation', 'relais-colis-woocommerce'); ?></label>
+            <input type="text" name="prestation_name[__INDEX__]" placeholder="<?php _e('Nom', 'relais-colis-woocommerce'); ?>">
+            </div>
+        <div class="line-g">
+
+            <label><?php _e('Choix du client', 'relais-colis-woocommerce'); ?></label>
+            <select name="client_choice[__INDEX__]">
+                <option value="option1"><?php _e('Option 1', 'relais-colis-woocommerce'); ?></option>
+                <option value="option2"><?php _e('Option 2', 'relais-colis-woocommerce'); ?></option>
+            </select>
+        </div>
+        <div class="line-g">
+
+            <label><?php _e('Méthode de livraison', 'relais-colis-woocommerce'); ?></label>
+            <select name="delivery_method[__INDEX__]">
+                <option value="relais"><?php _e('Relais', 'relais-colis-woocommerce'); ?></option>
+                <option value="domicile"><?php _e('Domicile', 'relais-colis-woocommerce'); ?></option>
+            </select>
+        </div>
+        <div class="line-g">
+
+            <label><?php _e('Actif', 'relais-colis-woocommerce'); ?></label>
+            <input type="checkbox" name="active[__INDEX__]" value="yes">
+        </div>
+        <div class="line-g">
+
+            <label><?php _e('Prix', 'relais-colis-woocommerce'); ?></label>
+            <input type="text" name="price[__INDEX__]" placeholder="<?php _e('Prix en €', 'relais-colis-woocommerce'); ?>">
+        </div>
+            <input type="hidden" name="prestation_deleted[__INDEX__]" value="0">
+        </div>
+    <?php
+    }
+
+
+    public static function fetch_client_info() {
+        if ( ! check_ajax_referer( 'rc-api-action', 'security', false ) ) {
+            wp_send_json_error(['message' => __('Nonce invalide.', 'relais-colis-woocommerce')]);
+        }
+
+        // TODO: Appel API
+        $api_response = [
+            'nom'     => 'Dupont',
+            'prenom'  => 'Jean',
+            'solde'   => '123.45 €',
+        ];
+
+        wp_send_json_success($api_response);
+    }
+
+
+    public static function render_action_buttons( $value ) {
+        echo '<button type="button" id="rc-refresh-info" class="button">' . esc_html__('Rafraîchir les informations', 'relais-colis-woocommerce') . '</button>';
+        echo '<button type="button" id="rc-extract-info" class="button">' . esc_html__('Extraire les informations', 'relais-colis-woocommerce') . '</button>';
+        echo '<div id="rc-client-info" style="margin-top: 10px;"></div>';
+        echo '<script>
+        jQuery(document).ready(function($) {
+            $("#rc-refresh-info").click(function() {
+                $.ajax({
+                    url: rc_ajax.ajax_url, // Passé depuis wp_localize_script
+                    method: "POST",
+                    data: {
+                        action: "rc_refresh_client_info",
+                        security: rc_ajax.nonce // Nonce dédié pour AJAX
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            let data = response.data;
+                            let infoHtml = `<strong>' . esc_html__('Nom', 'relais-colis-woocommerce') . ' :</strong> ${data.nom}<br>
+                                            <strong>' . esc_html__('Prénom', 'relais-colis-woocommerce') . ' :</strong> ${data.prenom}<br>
+                                            <strong>' . esc_html__('Solde', 'relais-colis-woocommerce') . ' :</strong> ${data.solde}`;
+                            $("#rc-client-info").html(infoHtml);
+                        } else {
+                            alert(response.data.message || "Une erreur est survenue.");
+                        }
+                    },
+                    error: function() {
+                        alert("Erreur de connexion avec l\'API.");
+                    }
+                });
+            });
+        
+            $("#rc-extract-info").click(function() {
+                $.ajax({
+                    url: rc_ajax.ajax_url,
+                    method: "POST",
+                    data: {
+                    action: "rc_extract_client_info",
+                        security: rc_ajax.nonce
+                    },
+                    success: function(response) {
+                    if (response.success) {
+                        let data = response.data;
+                            alert(`Nom : ${data.nom}\\nPrénom : ${data.prenom}\\nSolde : ${data.solde}`);
+                        } else {
+                        alert(response.data.message || "Une erreur est survenue.");
+                    }
+                },
+                    error: function() {
+                    alert("Erreur de connexion avec l\'API.");
+                }
+                });
+            });
+        });
+    </script>';
     }
 
 
@@ -259,19 +620,35 @@ class RC_Settings_Page {
         return [
             // Section : Prestations
             [
-                'title' => __('Prestations et grilles tarifaires', 'relais-colis-woocommerce'),
+                'title' => __('Prestations', 'relais-colis-woocommerce'),
                 'type'  => 'title',
-                'id'    => 'rc_prestations_section_title',
+                'desc'  => __('Ajoutez des prestations avec un seuil de gratuité.', 'relais-colis-woocommerce'),
+                'id'    => 'rc_prestations_title',
             ],
-                [
-                    'title' => __('Prestations', 'relais-colis-woocommerce'),
-                    'type'  => 'rc_prestations',
-                    'id'    => 'rc_prestations',
-                ],
+            [
+                'type' => 'rc_prestations',
+                'id'   => 'rc_prestations',
+            ],
             [
                 'type' => 'sectionend',
                 'id'   => 'rc_prestations_section_end',
             ],
+            [
+                'title' => __('Grilles Tarifaires', 'relais-colis-woocommerce'),
+                'type'  => 'title',
+                'desc'  => __('Définissez des tranches tarifaires basées sur le poids ou la valeur totale.', 'relais-colis-woocommerce'),
+                'id'    => 'rc_grilles_tarifaires_title',
+            ],
+            // Grilles tarifaires
+            [
+                'type' => 'rc_grilles_tarifaires',
+                'id'   => 'rc_grilles_tarifaires',
+            ],
+            [
+                'type' => 'sectionend',
+                'id'   => 'rc_grilles_tarifaires_section_end',
+            ],
+
         ];
     }
 
@@ -352,282 +729,8 @@ class RC_Settings_Page {
                 'id'   => 'rc_informations_section_end',
             ],
         ];
-    }
 
-    public static function render_prestations() {
-        $prestations = get_option('rc_prestations', []);
-
-        if (!is_array($prestations)) {
-            $prestations = [];
-        }
-
-        echo '
-        <table class="form-table">
-        <tbody><tr class="">
-        <td class="forminp forminp-text">
-            <div id="rc-prestations-container">';
-
-        // Bouton pour ajouter une prestation
-        echo '<button id="add-prestation" type="button" class="button button-primary">' . __('Ajouter une prestation', 'relais-colis-woocommerce') . '</button>';
-
-        // Tableau des prestations
-        echo '<table id="prestations-table" class="widefat striped">
-        <thead>
-            <tr>
-                <th>' . __('Client', 'relais-colis-woocommerce') . '</th>
-                <th>' . __('Produit', 'relais-colis-woocommerce') . '</th>
-                <th>' . __('Méthode de livraison', 'relais-colis-woocommerce') . '</th>
-                <th>' . __('Actif', 'relais-colis-woocommerce') . '</th>
-                <th>' . __('Prix', 'relais-colis-woocommerce') . '</th>
-                <th>' . __('Grilles tarifaires', 'relais-colis-woocommerce') . '</th>
-                <th>' . __('Action', 'relais-colis-woocommerce') . '</th>
-            </tr>
-        </thead>
-        <tbody>';
-
-        if (!empty($prestations)) {
-            foreach ($prestations as $index => $prestation) {
-                self::render_prestation_row($index, $prestation);
-            }
-        }
-
-        echo '</tbody></table>';
-
-        // Champ caché pour stocker les prestations au format JSON
-        echo '<input type="hidden" name="prestations" id="prestations-data" value="' . esc_attr(json_encode($prestations)) . '">';
-        echo '</div></td></tr></tbody></table>'; // Fin du conteneur
-
-        // Scripts JavaScript pour la gestion dynamique
-        echo '<script>
-        jQuery(document).ready(function($) {
-            let prestationIndex = $("#prestations-table tbody tr").length;
-
-            // Ajouter une prestation
-            $("#add-prestation").click(function() {
-                let rowHTML = `' . self::generate_prestation_row_template($index) . '`.replace(/{{index}}/g, prestationIndex);
-                $("#prestations-table > tbody").append(rowHTML);
-                prestationIndex++;
-            });
-
-            // Supprimer une prestation
-            $(document).on("click", ".remove-prestation", function() {
-                $(this).closest("tr").remove();
-            });
-
-            // Ajouter une grille tarifaire
-            $(document).on("click", ".add-grille", function(e) {
-                e.preventDefault();
-                let prestationRow = $(this).closest("tr");
-                let grillesContainer = prestationRow.find(".grilles-container");
-                let grilleIndex = grillesContainer.data("grilleIndex") || 0;
-                let grilleType = prestationRow.find(".grille-type").val();
-
-                let grilleHTML = `<div class="grille" data-grille-index="` + grilleIndex + `">
-                    <strong>` + grilleType + `</strong>
-                    <table class="widefat">
-                        <thead>
-                            <tr>
-                                <th>' . __('Min', 'relais-colis-woocommerce') . '</th>
-                                <th>' . __('Max', 'relais-colis-woocommerce') . '</th>
-                                <th>' . __('Prix', 'relais-colis-woocommerce') . '</th>
-                                <th>' . __('Action', 'relais-colis-woocommerce') . '</th>
-                            </tr>
-                        </thead>
-                        <tbody class="grille-rows">
-                            <tr>
-                                <td><input type="number" class="grille-min" /></td>
-                                <td><input type="number" class="grille-max" /></td>
-                                <td><input type="number" class="grille-price" /></td>
-                                <td><button class="button remove-grille-row">❌</button></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                    <button type="button" class="button add-grille-row">' . __('Ajouter une ligne', 'relais-colis-woocommerce') . '</button>
-                </div>`;
-                grillesContainer.append(grilleHTML);
-                grillesContainer.data("grilleIndex", grilleIndex + 1);
-            });
-
-            // Ajouter une ligne dans une grille
-            $(document).on("click", ".add-grille-row", function(e) {
-                e.preventDefault();
-                let grilleRows = $(this).siblings("table").find(".grille-rows");
-                let rowHTML = `<tr>
-                    <td><input type="number" class="grille-min" /></td>
-                    <td><input type="number" class="grille-max" /></td>
-                    <td><input type="number" class="grille-price" /></td>
-                    <td><button class="button remove-grille-row">❌</button></td>
-                </tr>`;
-                grilleRows.append(rowHTML);
-            });
-
-            // Supprimer une ligne de grille
-            $(document).on("click", ".remove-grille-row", function() {
-                $(this).closest("tr").remove();
-            });
-        });
-    </script>';
-    }
-
-    private static function render_prestation_row($index, $prestation) {
-        $client = isset($prestation['client']) && $prestation['client'] ? 'checked' : '';
-        $produits = $prestation['produits'] ?? [];
-        $livraison = $prestation['livraison'] ?? [];
-        $actif = isset($prestation['actif']) && $prestation['actif'] ? 'checked' : '';
-        $prix = esc_attr($prestation['prix'] ?? '');
-
-        echo "<tr data-index='{$index}'>
-        <td><input type='checkbox' name='prestations[{$index}][client]' value='1' {$client} /></td>
-        <td>
-            <select name='prestations[{$index}][produits][]' multiple>
-                <option value='Produit A' " . (in_array('Produit A', $produits) ? 'selected' : '') . ">" . __('Produit A', 'relais-colis-woocommerce') . "</option>
-                <option value='Produit B' " . (in_array('Produit B', $produits) ? 'selected' : '') . ">" . __('Produit B', 'relais-colis-woocommerce') . "</option>
-                <option value='Produit C' " . (in_array('Produit C', $produits) ? 'selected' : '') . ">" . __('Produit C', 'relais-colis-woocommerce') . "</option>
-            </select>
-        </td>
-        <td>
-            <select name='prestations[{$index}][livraison][]' multiple>
-                <option value='rendez_vous' " . (in_array('rendez_vous', $livraison) ? 'selected' : '') . ">" . __('Prise de rendez-vous', 'relais-colis-woocommerce') . "</option>
-                <option value='etage' " . (in_array('etage', $livraison) ? 'selected' : '') . ">" . __('Livraison à l’étage', 'relais-colis-woocommerce') . "</option>
-                <option value='a_deux' " . (in_array('a_deux', $livraison) ? 'selected' : '') . ">" . __('Livraison à deux', 'relais-colis-woocommerce') . "</option>
-                <option value='mes_electro' " . (in_array('mes_electro', $livraison) ? 'selected' : '') . ">" . __('M.E.S gros électroménager', 'relais-colis-woocommerce') . "</option>
-                <option value='assemblage' " . (in_array('assemblage', $livraison) ? 'selected' : '') . ">" . __('Assemblage rapide', 'relais-colis-woocommerce') . "</option>
-                <option value='hors_norme' " . (in_array('hors_norme', $livraison) ? 'selected' : '') . ">" . __('Hors Norme', 'relais-colis-woocommerce') . "</option>
-                <option value='deballage' " . (in_array('deballage', $livraison) ? 'selected' : '') . ">" . __('Déballage produit', 'relais-colis-woocommerce') . "</option>
-                <option value='evacuation' " . (in_array('evacuation', $livraison) ? 'selected' : '') . ">" . __('Evacuation Emballage', 'relais-colis-woocommerce') . "</option>
-                <option value='ancien_materiel' " . (in_array('ancien_materiel', $livraison) ? 'selected' : '') . ">" . __('Reprise ancien matériel', 'relais-colis-woocommerce') . "</option>
-                <option value='piece_souhaitee' " . (in_array('piece_souhaitee', $livraison) ? 'selected' : '') . ">" . __('Livraison dans la pièce souhaitée', 'relais-colis-woocommerce') . "</option>
-                <option value='pas_de_porte' " . (in_array('pas_de_porte', $livraison) ? 'selected' : '') . ">" . __('Livraison au pas de porte', 'relais-colis-woocommerce') . "</option>
-            </select>
-        </td>
-        <td><input type='checkbox' name='prestations[{$index}][actif]' value='1' {$actif} /></td>
-        <td><input type='text' name='prestations[{$index}][prix]' value='{$prix}' /></td>
-        <td>
-            <div class='grilles-container' data-grille-index='0'>
-                <select class='grille-type'>
-                    <option value='Critère : Poids'>" . __('Poids', 'relais-colis-woocommerce') . "</option>
-                    <option value='Critère : Valeur commande'>" . __('Valeur commande', 'relais-colis-woocommerce') . "</option>
-                </select>
-                <button class='button add-grille'>" . __('Ajouter une grille', 'relais-colis-woocommerce') . "</button>
-            </div>
-        </td>
-        <td><button class='button remove-prestation'>❌</button></td>
-        </tr>";
-    }
-
-
-
-    private static function generate_prestation_row_template($index) {
-        return '<tr data-index="{$index}">
-        <td><input type="checkbox" name="prestations[new][client]" value="1" /></td>
-        <td>
-            <select name="prestations[new][produits][]" multiple>
-                <option value="Produit A">' . __('Produit A', 'relais-colis-woocommerce') . '</option>
-                <option value="Produit B">' . __('Produit B', 'relais-colis-woocommerce') . '</option>
-                <option value="Produit C">' . __('Produit C', 'relais-colis-woocommerce') . '</option>
-            </select>
-        </td>
-        <td>
-            <select name="prestations[new][livraison][]" multiple>
-                <option value="rendez_vous">' . __('Prise de rendez-vous', 'relais-colis-woocommerce') . '</option>
-                <option value="etage">' . __('Livraison à l’étage', 'relais-colis-woocommerce') . '</option>
-                <option value="a_deux">' . __('Livraison à deux', 'relais-colis-woocommerce') . '</option>
-                <option value="mes_electro">' . __('M.E.S gros électroménager', 'relais-colis-woocommerce') . '</option>
-                <option value="assemblage">' . __('Assemblage rapide', 'relais-colis-woocommerce') . '</option>
-                <option value="hors_norme">' . __('Hors Norme', 'relais-colis-woocommerce') . '</option>
-                <option value="deballage">' . __('Déballage produit', 'relais-colis-woocommerce') . '</option>
-                <option value="evacuation">' . __('Evacuation Emballage', 'relais-colis-woocommerce') . '</option>
-                <option value="ancien_materiel">' . __('Reprise ancien matériel', 'relais-colis-woocommerce') . '</option>
-                <option value="piece_souhaitee">' . __('Livraison dans la pièce souhaitée', 'relais-colis-woocommerce') . '</option>
-                <option value="pas_de_porte">' . __('Livraison au pas de porte', 'relais-colis-woocommerce') . '</option>
-            </select>
-        </td>
-         <td><input type="checkbox" name="prestations[new][actif]" value="1" /></td>
-        <td><input type="text" name="prestations[new][prix]" /></td>
-        <td>
-            <div class="grilles-container" data-grille-index="0">
-                <select class="grille-type">
-                    <option value="Critère : Poids">' . __('Poids', 'relais-colis-woocommerce') . '</option>
-                    <option value="Critère : Valeur commande">' . __('Valeur commande', 'relais-colis-woocommerce') . '</option>
-                </select>
-                <button class="button add-grille">' . __('Ajouter une grille', 'relais-colis-woocommerce') . '</button>
-            </div>
-        </td>
-        <td><button class="button remove-prestation">❌</button></td>
-        </tr>';
-    }
-
-
-    public static function fetch_client_info() {
-        if ( ! check_ajax_referer( 'rc-api-action', 'security', false ) ) {
-            wp_send_json_error(['message' => __('Nonce invalide.', 'relais-colis-woocommerce')]);
-        }
-
-        // TODO: Appel API
-        $api_response = [
-            'nom'     => 'Dupont',
-            'prenom'  => 'Jean',
-            'solde'   => '123.45 €',
-        ];
-
-        wp_send_json_success($api_response);
-    }
-
-
-    public static function render_action_buttons( $value ) {
-        echo '<button type="button" id="rc-refresh-info" class="button">' . esc_html__('Rafraîchir les informations', 'relais-colis-woocommerce') . '</button>';
-        echo '<button type="button" id="rc-extract-info" class="button">' . esc_html__('Extraire les informations', 'relais-colis-woocommerce') . '</button>';
-        echo '<div id="rc-client-info" style="margin-top: 10px;"></div>';
-        echo '<script>
-        jQuery(document).ready(function($) {
-            $("#rc-refresh-info").click(function() {
-                $.ajax({
-                    url: rc_ajax.ajax_url,
-                    method: "POST",
-                    data: {
-                        action: "rc_refresh_client_info",
-                        security: rc_ajax.nonce // Nonce dédié pour AJAX
-                    },
-                    success: function(response) {
-                        if (response.success) {
-                            let data = response.data;
-                            let infoHtml = `<strong>Nom :</strong> ${data.nom}<br>
-                                            <strong>Prénom :</strong> ${data.prenom}<br>
-                                            <strong>Solde :</strong> ${data.solde}`;
-                            $("#rc-client-info").html(infoHtml);
-                        } else {
-                            alert(response.data.message || "Une erreur est survenue.");
-                        }
-                    },
-                    error: function() {
-                        alert("Erreur de connexion avec l\'API.");
-                    }
-                });
-            });
-        
-            $("#rc-extract-info").click(function() {
-                $.ajax({
-                    url: rc_ajax.ajax_url,
-                    method: "POST",
-                    data: {
-                    action: "rc_extract_client_info",
-                        security: rc_ajax.nonce
-                    },
-                    success: function(response) {
-                    if (response.success) {
-                        let data = response.data;
-                            alert(`Nom : ${data.nom}\\nPrénom : ${data.prenom}\\nSolde : ${data.solde}`);
-                        } else {
-                        alert(response.data.message || "Une erreur est survenue.");
-                    }
-                },
-                    error: function() {
-                    alert("Erreur de connexion avec l\'API.");
-                }
-                });
-            });
-        });
-    </script>';
+        return $settings;
     }
 
 }
