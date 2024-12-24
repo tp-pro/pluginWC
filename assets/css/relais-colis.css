@@ -34,22 +34,30 @@
     background-color: #fff;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
-#grilles-container,
-#prestations-container {
+#grilles-container {
     display: flex;
     gap: 20px;
     flex-wrap: wrap;
 }
+#prestations-container {
+    display: table;
+    width: 100%;
+}
 .prestation-container {
-    display: flex;
-    align-items: flex-start;
-    gap: 10px;
+    display: table-row;
 }
 
 .line-g {
-    display: flex;
-    flex-direction: column;
+    display: table-cell;
 }
+
+.prestah {
+    display: table-row;
+}
+.prestah span {
+    display: table-cell;
+}
+
 
 /* Titre et bouton de suppression */
 .prestation-container h4, .grille-container h4 {
@@ -82,11 +90,8 @@
     margin-bottom: 5px;
 }
 
-.prestation-container input[type="text"],
 .grille-container input[type="text"],
-.prestation-container select,
 .grille-container select,
-.prestation-container input[type="checkbox"],
 .grille-container input[type="checkbox"] {
     display: block;
     width: 100%;
@@ -96,6 +101,13 @@
     border-radius: 3px;
     box-sizing: border-box;
 }
+.prestation-container select,
+.prestation-container input[type="checkbox"],
+.prestation-container input[type="text"] {
+    width: 80%;
+}
+
+
 
 .prestation-container input[type="checkbox"],
 .grille-container input[type="checkbox"] {
