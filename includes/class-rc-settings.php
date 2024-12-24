@@ -261,8 +261,8 @@ class RC_Settings_Page {
                 <div class="line-g">
                     <label><?php _e('Critère', 'relais-colis-woocommerce'); ?></label>
                     <select name="grilles[<?= $grille_index; ?>][critere]">
-                        <option value="weight" <?php selected($grille['critere'] ?? '', 'weight'); ?>><?php _e('Poids', 'relais-colis-woocommerce'); ?></option>
-                        <option value="price" <?php selected($grille['critere'] ?? '', 'price'); ?>><?php _e('Valeur totale', 'relais-colis-woocommerce'); ?></option>
+                        <option value="price" <?php selected($grille['critere'] ?? '', 'price'); ?>><?php _e('Prix total de la commande', 'relais-colis-woocommerce'); ?></option>
+                        <option value="weight" <?php selected($grille['critere'] ?? '', 'weight'); ?>><?php _e('Poids de la commande', 'relais-colis-woocommerce'); ?></option>
                     </select>
                 </div>
             </div>
@@ -314,8 +314,8 @@ class RC_Settings_Page {
                 <div class="line-g">
                     <label><?php _e('Critère', 'relais-colis-woocommerce'); ?></label>
                     <select name="grilles[__INDEX__][critere]">
-                        <option value="weight"><?php _e('Poids', 'relais-colis-woocommerce'); ?></option>
-                        <option value="price"><?php _e('Valeur totale', 'relais-colis-woocommerce'); ?></option>
+                        <option value="price"><?php _e('Prix total de la commande', 'relais-colis-woocommerce'); ?></option>
+                        <option value="weight"><?php _e('Poids de la commande', 'relais-colis-woocommerce'); ?></option>
                     </select>
                 </div>
             </div>
