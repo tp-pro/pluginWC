@@ -244,7 +244,7 @@ class RC_Settings_Page {
             <button type="button" class="remove-grille">❌</button>
             <div class="grille-header">
                 <div class="line-g">
-                    <label><?php _e('Méthode de livraison', 'relais-colis-woocommerce'); ?></label>
+                    <label><?php _e('Intitulé de la méthode de livraison', 'relais-colis-woocommerce'); ?></label>
                     <input type="text" name="grilles[<?= $grille_index; ?>][method_name]" value="<?= esc_attr($grille['method_name'] ?? ''); ?>" placeholder="<?php _e('Méthode livraison', 'relais-colis-woocommerce'); ?>">
                 </div>
                 <div class="line-g">
@@ -259,7 +259,7 @@ class RC_Settings_Page {
                     </select>
                 </div>
                 <div class="line-g">
-                    <label><?php _e('Critère', 'relais-colis-woocommerce'); ?></label>
+                    <label><?php _e('Type de tranche tarifaire', 'relais-colis-woocommerce'); ?></label>
                     <select name="grilles[<?= $grille_index; ?>][critere]">
                         <option value="price" <?php selected($grille['critere'] ?? '', 'price'); ?>><?php _e('Prix total de la commande', 'relais-colis-woocommerce'); ?></option>
                         <option value="weight" <?php selected($grille['critere'] ?? '', 'weight'); ?>><?php _e('Poids de la commande', 'relais-colis-woocommerce'); ?></option>
@@ -299,7 +299,7 @@ class RC_Settings_Page {
             <button type="button" class="remove-grille">❌</button>
             <div class="grille-header">
                 <div class="line-g">
-                    <label><?php _e('Méthode de livraison', 'relais-colis-woocommerce'); ?></label>
+                    <label><?php _e('Intitulé de la méthode de livraison', 'relais-colis-woocommerce'); ?></label>
                     <input type="text" name="grilles[__INDEX__][method_name]" placeholder="<?php _e('Exemple : Livraison à domicile', 'relais-colis-woocommerce'); ?>">
                 </div>
                 <div class="line-g">
@@ -312,7 +312,7 @@ class RC_Settings_Page {
                     </select>
                 </div>
                 <div class="line-g">
-                    <label><?php _e('Critère', 'relais-colis-woocommerce'); ?></label>
+                    <label><?php _e('Type de tranche tarifaire', 'relais-colis-woocommerce'); ?></label>
                     <select name="grilles[__INDEX__][critere]">
                         <option value="price"><?php _e('Prix total de la commande', 'relais-colis-woocommerce'); ?></option>
                         <option value="weight"><?php _e('Poids de la commande', 'relais-colis-woocommerce'); ?></option>
