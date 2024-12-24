@@ -396,16 +396,16 @@ class RC_Settings_Page {
             <div class="line-g">
                 <label><?php _e('Choix du client', 'relais-colis-woocommerce'); ?></label>
                 <select name="client_choice[<?= $index; ?>]">
-                    <option value="option1" <?php selected($client_choice, 'option1'); ?>><?php _e('Option 1', 'relais-colis-woocommerce'); ?></option>
-                    <option value="option2" <?php selected($client_choice, 'option2'); ?>><?php _e('Option 2', 'relais-colis-woocommerce'); ?></option>
+                    <option value="oui" <?php selected($client_choice, 'oui'); ?>><?php _e('Oui', 'relais-colis-woocommerce'); ?></option>
+                    <option value="non" <?php selected($client_choice, 'non'); ?>><?php _e('Non', 'relais-colis-woocommerce'); ?></option>
                 </select>
             </div>
 
             <div class="line-g">
                 <label><?php _e('Méthode de livraison', 'relais-colis-woocommerce'); ?></label>
                 <select name="delivery_method[<?= $index; ?>]">
-                    <option value="relais" <?php selected($method, 'relais'); ?>><?php _e('Relais', 'relais-colis-woocommerce'); ?></option>
-                    <option value="domicile" <?php selected($method, 'domicile'); ?>><?php _e('Domicile', 'relais-colis-woocommerce'); ?></option>
+                    <option value="home" <?php selected($method, 'home'); ?>><?php _e('Home', 'relais-colis-woocommerce'); ?></option>
+                    <option value="home+" <?php selected($method, 'home+'); ?>><?php _e('Home+', 'relais-colis-woocommerce'); ?></option>
                 </select>
             </div>
 
@@ -439,16 +439,16 @@ class RC_Settings_Page {
 
             <label><?php _e('Choix du client', 'relais-colis-woocommerce'); ?></label>
             <select name="client_choice[__INDEX__]">
-                <option value="option1"><?php _e('Option 1', 'relais-colis-woocommerce'); ?></option>
-                <option value="option2"><?php _e('Option 2', 'relais-colis-woocommerce'); ?></option>
+                <option value="oui"><?php _e('Oui', 'relais-colis-woocommerce'); ?></option>
+                <option value="non"><?php _e('Non', 'relais-colis-woocommerce'); ?></option>
             </select>
         </div>
         <div class="line-g">
 
             <label><?php _e('Méthode de livraison', 'relais-colis-woocommerce'); ?></label>
             <select name="delivery_method[__INDEX__]">
-                <option value="relais"><?php _e('Relais', 'relais-colis-woocommerce'); ?></option>
-                <option value="domicile"><?php _e('Domicile', 'relais-colis-woocommerce'); ?></option>
+                <option value="home"><?php _e('Home', 'relais-colis-woocommerce'); ?></option>
+                <option value="home+"><?php _e('Home+', 'relais-colis-woocommerce'); ?></option>
             </select>
         </div>
         <div class="line-g">
