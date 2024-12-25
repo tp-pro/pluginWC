@@ -290,9 +290,18 @@ class RC_Settings_Page {
     private static function render_single_grille__line($grille_index, $line_index, $line) {
         ?>
         <div class="line-row">
-            <input type="number" name="grilles[<?= $grille_index; ?>][lines][<?= $line_index; ?>][min]" value="<?= esc_attr($line['min'] ?? ''); ?>" placeholder="Min">
-            <input type="number" name="grilles[<?= $grille_index; ?>][lines][<?= $line_index; ?>][max]" value="<?= esc_attr($line['max'] ?? ''); ?>" placeholder="Max">
-            <input type="number" step="0.01" name="grilles[<?= $grille_index; ?>][lines][<?= $line_index; ?>][price]" value="<?= esc_attr($line['price'] ?? ''); ?>" placeholder="Prix">
+            <div class="line-g">
+                <label><?php _e('valeur de début', 'relais-colis-woocommerce'); ?></label>
+                <input type="number" name="grilles[<?= $grille_index; ?>][lines][<?= $line_index; ?>][min]" value="<?= esc_attr($line['min'] ?? ''); ?>" placeholder="Min">
+            </div>
+            <div class="line-g">
+                <label><?php _e('Valeur de fin', 'relais-colis-woocommerce'); ?></label>
+                <input type="number" name="grilles[<?= $grille_index; ?>][lines][<?= $line_index; ?>][max]" value="<?= esc_attr($line['max'] ?? ''); ?>" placeholder="Max">
+            </div>
+            <div class="line-g">
+                <label><?php _e('Prix', 'relais-colis-woocommerce'); ?></label>
+                <input type="number" step="0.01" name="grilles[<?= $grille_index; ?>][lines][<?= $line_index; ?>][price]" value="<?= esc_attr($line['price'] ?? ''); ?>" placeholder="Prix">
+            </div>
             <button type="button" class="remove-line">❌</button>
         </div>
         <?php
@@ -329,9 +338,18 @@ class RC_Settings_Page {
         ob_start();
         ?>
         <div class="line-row">
-            <input type="number" name="grilles[__GRILLE_INDEX__][lines][__LINE_INDEX__][min]" placeholder="Min">
-            <input type="number" name="grilles[__GRILLE_INDEX__][lines][__LINE_INDEX__][max]" placeholder="Max">
-            <input type="number" step="0.01" name="grilles[__GRILLE_INDEX__][lines][__LINE_INDEX__][price]" placeholder="Prix">
+            <div class="line-g">
+                <label><?php _e('Valeur de début', 'relais-colis-woocommerce'); ?></label>
+                <input type="number" name="grilles[__GRILLE_INDEX__][lines][__LINE_INDEX__][min]" placeholder="Min">
+            </div>
+            <div class="line-g">
+                <label><?php _e('Valeur de fin', 'relais-colis-woocommerce'); ?></label>
+                <input type="number" name="grilles[__GRILLE_INDEX__][lines][__LINE_INDEX__][max]" placeholder="Max">
+            </div>
+            <div class="line-g">
+                <label><?php _e('Prix', 'relais-colis-woocommerce'); ?></label>
+                <input type="number" step="0.01" name="grilles[__GRILLE_INDEX__][lines][__LINE_INDEX__][price]" placeholder="Prix">
+            </div>
             <button type="button" class="remove-line">❌</button>
         </div>
         <?php
