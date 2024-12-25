@@ -399,7 +399,7 @@ class RC_Settings_Page {
                     ?>
                     <div class="prestation-container" data-index="<?= $index; ?>">
                         <div class="line-g">
-                            <input type="text" name="prestation_name[<?= $index; ?>]" value="<?= esc_attr($prestation_name); ?>" readonly>
+                            <?= esc_attr($prestation_name); ?>
                         </div>
 
                         <div class="line-g">
