@@ -263,11 +263,11 @@ class RC_Settings_Page {
     ?>
         <div class="grille-container" data-index="<?= $grille_index; ?>">
             <button type="button" class="remove-grille">❌</button>
+            <div class="line-g">
+                <label><?php _e('Intitulé de la méthode de livraison', 'relais-colis-woocommerce'); ?></label>
+                <input type="text" name="grilles[<?= $grille_index; ?>][method_name]" value="<?= esc_attr($grille['method_name'] ?? ''); ?>" placeholder="<?php _e('Méthode livraison', 'relais-colis-woocommerce'); ?>">
+            </div>
             <div class="grille-header">
-                <div class="line-g">
-                    <label><?php _e('Intitulé de la méthode de livraison', 'relais-colis-woocommerce'); ?></label>
-                    <input type="text" name="grilles[<?= $grille_index; ?>][method_name]" value="<?= esc_attr($grille['method_name'] ?? ''); ?>" placeholder="<?php _e('Méthode livraison', 'relais-colis-woocommerce'); ?>">
-                </div>
                 <div class="line-g">
                     <label><?php _e('Prestation associée', 'relais-colis-woocommerce'); ?></label>
                     <select name="grilles[<?= $grille_index; ?>][prestation_name]">
@@ -315,11 +315,11 @@ class RC_Settings_Page {
         ?>
         <div class="grille-container" data-index="__INDEX__">
             <button type="button" class="remove-grille">❌</button>
+            <div class="line-g">
+                <label><?php _e('Intitulé de la méthode de livraison', 'relais-colis-woocommerce'); ?></label>
+                <input type="text" name="grilles[__INDEX__][method_name]" placeholder="<?php _e('Exemple : Livraison à domicile', 'relais-colis-woocommerce'); ?>">
+            </div>
             <div class="grille-header">
-                <div class="line-g">
-                    <label><?php _e('Intitulé de la méthode de livraison', 'relais-colis-woocommerce'); ?></label>
-                    <input type="text" name="grilles[__INDEX__][method_name]" placeholder="<?php _e('Exemple : Livraison à domicile', 'relais-colis-woocommerce'); ?>">
-                </div>
                 <div class="line-g">
                     <label><?php _e('Prestation associée', 'relais-colis-woocommerce'); ?></label>
                     <select name="grilles[__INDEX__][prestation_name]">
