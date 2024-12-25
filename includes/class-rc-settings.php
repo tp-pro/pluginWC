@@ -269,17 +269,6 @@ class RC_Settings_Page {
             </div>
             <div class="grille-header">
                 <div class="line-g">
-                    <label><?php _e('Prestation associée', 'relais-colis-woocommerce'); ?></label>
-                    <select name="grilles[<?= $grille_index; ?>][prestation_name]">
-                        <option value=""><?php _e('Sélectionner une prestation', 'relais-colis-woocommerce'); ?></option>
-                        <?php foreach ($fixed_prestations as $prestation): ?>
-                            <option value="<?= esc_attr($prestation); ?>" <?php selected($grille['prestation_name'] ?? '', $prestation); ?>>
-                                <?= esc_html($prestation); ?>
-                            </option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
-                <div class="line-g">
                     <label><?php _e('Type de tranche tarifaire', 'relais-colis-woocommerce'); ?></label>
                     <select name="grilles[<?= $grille_index; ?>][critere]">
                         <option value="price" <?php selected($grille['critere'] ?? '', 'price'); ?>><?php _e('Prix total de la commande', 'relais-colis-woocommerce'); ?></option>
@@ -320,15 +309,6 @@ class RC_Settings_Page {
                 <input type="text" name="grilles[__INDEX__][method_name]" placeholder="<?php _e('Exemple : Livraison à domicile', 'relais-colis-woocommerce'); ?>">
             </div>
             <div class="grille-header">
-                <div class="line-g">
-                    <label><?php _e('Prestation associée', 'relais-colis-woocommerce'); ?></label>
-                    <select name="grilles[__INDEX__][prestation_name]">
-                        <option value=""><?php _e('Sélectionner une prestation', 'relais-colis-woocommerce'); ?></option>
-                        <?php foreach ($fixed_prestations as $prestation): ?>
-                            <option value="<?= esc_attr($prestation); ?>"><?= esc_html($prestation); ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                </div>
                 <div class="line-g">
                     <label><?php _e('Type de tranche tarifaire', 'relais-colis-woocommerce'); ?></label>
                     <select name="grilles[__INDEX__][critere]">
