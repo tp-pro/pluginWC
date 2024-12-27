@@ -1,20 +1,31 @@
 <?php
-if ( ! defined( 'ABSPATH' ) ) {
+if (!defined('ABSPATH')) {
     exit; // Exit if accessed directly.
 }
 
-class RC_Settings_Page {
-
-    public static function init() {
-        add_filter( 'woocommerce_settings_tabs_array', __CLASS__ . '::add_settings_tab', 50 );
-        add_action( 'woocommerce_settings_tabs_rc_settings', __CLASS__ . '::settings_tab' );
-        add_action( 'woocommerce_sections_rc_settings', __CLASS__ . '::output_sections' );
-        add_action( 'woocommerce_update_options_rc_settings', __CLASS__ . '::update_settings' );
-        add_action( 'woocommerce_admin_field_rc_grilles_tarifaires', __CLASS__ . '::render_grilles_tarifaires');
-        add_action( 'woocommerce_admin_field_rc_prestations', __CLASS__ . '::render_prestations');
+/**
+ * Class RC_Settings_Page
+ *
+ * @author Team Calliweb dev@calliweb.fr
+ * @copyright Copyright © 2024 Calliweb (https://www.calliweb.fr)
+ * @package RC_Settings_Page
+ */
+class RC_Settings_Page
+{
+    /**
+     * @return void
+     */
+    public static function init(): void
+    {
+        add_filter('woocommerce_settings_tabs_array', __CLASS__ . '::add_settings_tab', 50);
+        add_action('woocommerce_settings_tabs_rc_settings', __CLASS__ . '::settings_tab');
+        add_action('woocommerce_sections_rc_settings', __CLASS__ . '::output_sections');
+        add_action('woocommerce_update_options_rc_settings', __CLASS__ . '::update_settings');
+        add_action('woocommerce_admin_field_rc_grilles_tarifaires', __CLASS__ . '::render_grilles_tarifaires');
+        add_action('woocommerce_admin_field_rc_prestations', __CLASS__ . '::render_prestations');
 
         // Add custom type for button
-        add_action( 'woocommerce_admin_field_rc_action_buttons', __CLASS__ . '::render_action_buttons' );
+        add_action('woocommerce_admin_field_rc_action_buttons', __CLASS__ . '::render_action_buttons');
 
         // Add custom AJAX action for API key validation
         add_action('wp_ajax_validate_rc_api_key', __CLASS__ . '::validate_api_key');
@@ -24,7 +35,7 @@ class RC_Settings_Page {
         add_action('wp_ajax_rc_extract_client_info', __CLASS__ . '::fetch_client_info');
         add_action('wp_ajax_nopriv_rc_extract_client_info', __CLASS__ . '::fetch_client_info');
 
-        add_action('admin_enqueue_scripts', function() {
+        add_action('admin_enqueue_scripts', function () {
             $screen = get_current_screen();
             if ($screen->id === 'woocommerce_page_wc-settings' &&
                 isset($_GET['tab']) && $_GET['tab'] === 'rc_settings') {
@@ -33,16 +44,19 @@ class RC_Settings_Page {
                 wp_enqueue_style( 'rc-syles', plugin_dir_url( __FILE__ ) . '../assets/css/relais-colis.css');
 
                 // Passer le nonce au script JS
-                wp_localize_script( 'rc-api-validation', 'rc_ajax', [
-                    'ajax_url' => admin_url( 'admin-ajax.php' ),
-                    'nonce'    => wp_create_nonce( 'rc-api-action' )
+                wp_localize_script('rc-api-validation', 'rc_ajax', [
+                    'ajax_url' => admin_url('admin-ajax.php'),
+                    'nonce' => wp_create_nonce('rc-api-action')
                 ]);
             }
         });
     }
 
-
-    public static function validate_api_key() {
+    /**
+     * @return void
+     */
+    public static function validate_api_key(): void
+    {
         $nonce_check = check_ajax_referer('rc-api-key-validation', 'security', false);
         if (!$nonce_check) {
             wp_send_json_error(['message' => 'Nonce verification failed']);
@@ -57,16 +71,24 @@ class RC_Settings_Page {
         wp_send_json_success(['message' => __('Clé API valide', 'relais-colis-woocommerce')]);
     }
 
-
-    private static function is_valid_c2c_api_key($api_key) {
+    /**
+     * @param $api_key
+     * @return bool
+     */
+    private static function is_valid_c2c_api_key($api_key): bool
+    {
         // Validate C2C API key format
         // Format: C2C-API-KEY-[12 alphanumeric characters]
         $pattern = '/^C2C-API-KEY-[0-9A-F]{12}$/i';
         return preg_match($pattern, $api_key) === 1;
     }
 
-
-    private static function get_welcome_name($api_key) {
+    /**
+     * @param $api_key
+     * @return string
+     */
+    private static function get_welcome_name($api_key): string
+    {
         // Extract a potential name or identifier from the API key
         // This is a placeholder - you might want to replace with actual logic
         $identifier = substr($api_key, -6);
@@ -81,27 +103,37 @@ class RC_Settings_Page {
         return $possible_names[rand(0, count($possible_names) - 1)];
     }
 
-
-    public static function add_settings_tab( $settings_tabs ) {
-        $settings_tabs['rc_settings'] = __( 'Relais Colis', 'relais-colis-woocommerce' );
+    /**
+     * @param $settings_tabs
+     * @return mixed
+     */
+    public static function add_settings_tab($settings_tabs): mixed
+    {
+        $settings_tabs['rc_settings'] = __('Relais Colis', 'relais-colis-woocommerce');
         return $settings_tabs;
     }
 
-
-    public static function settings_tab() {
+    /**
+     * @return void
+     */
+    public static function settings_tab(): void
+    {
         global $current_section;
 
-        if ( '' === $current_section ) {
-            woocommerce_admin_fields( self::get_general_settings() );
-        } elseif ( 'prestations' === $current_section ) {
-            woocommerce_admin_fields( self::get_prestations_settings() );
+        if ('' === $current_section) {
+            woocommerce_admin_fields(self::get_general_settings());
+        } elseif ('prestations' === $current_section) {
+            woocommerce_admin_fields(self::get_prestations_settings());
         } elseif ( 'informations' === $current_section ) {
             woocommerce_admin_fields( self::get_informations_settings() );
         }
     }
 
-
-    public static function output_sections() {
+    /**
+     * @return void
+     */
+    public static function output_sections(): void
+    {
         global $current_section;
 
         $sections = self::get_sections();
@@ -117,22 +149,28 @@ class RC_Settings_Page {
         echo '</ul><br class="clear" />';
     }
 
-
-    private static function get_sections() {
+    /**
+     * @return array
+     */
+    private static function get_sections(): array
+    {
         return [
-            '' => __( 'Réglages Relais Colis', 'relais-colis-woocommerce' ),
+            '' => __( 'Configuration générales', 'relais-colis-woocommerce' ),
             'prestations' => __( 'Prestations', 'relais-colis-woocommerce' ),
             'informations' => __( 'Vos informations', 'relais-colis-woocommerce' ),
         ];
     }
 
-
-    public static function update_settings() {
+    /**
+     * @return void
+     */
+    public static function update_settings(): void
+    {
         global $current_section;
 
-        if ( '' === $current_section ) {
-            woocommerce_update_options( self::get_general_settings() );
-        } elseif ( 'prestations' === $current_section ) {
+        if ('' === $current_section) {
+            woocommerce_update_options(self::get_general_settings());
+        } elseif ('prestations' === $current_section) {
             // Sauvegarde des grilles tarifaires
             if (isset($_POST['grilles']) && is_array($_POST['grilles'])) {
                 $grilles_data = [];
@@ -178,16 +216,16 @@ class RC_Settings_Page {
             $prestations_data = [];
             foreach ($fixed_prestations as $index => $name) {
                 $prestations_data[] = [
-                    'name'          => $name,
+                    'name' => $name,
                     'client_choice' => sanitize_text_field($_POST['client_choice'][$index] ?? ''),
-                    'method'        => sanitize_text_field($_POST['delivery_method'][$index] ?? ''),
-                    'active'        => isset($_POST['active'][$index]) ? 'yes' : 'no',
-                    'price'         => sanitize_text_field($_POST['price'][$index] ?? ''),
+                    'method' => sanitize_text_field($_POST['delivery_method'][$index] ?? ''),
+                    'active' => isset($_POST['active'][$index]) ? 'yes' : 'no',
+                    'price' => sanitize_text_field($_POST['price'][$index] ?? ''),
                 ];
             }
             update_option('rc_prestations', wp_json_encode($prestations_data));
-        } elseif ( 'informations' === $current_section ) {
-            woocommerce_update_options( self::get_informations_settings() );
+        } elseif ('informations' === $current_section) {
+            woocommerce_update_options(self::get_informations_settings());
         }
     }
 
@@ -222,18 +260,18 @@ class RC_Settings_Page {
             </div>
         </div>
         <script>
-            jQuery(document).ready(function($) {
+            jQuery(document).ready(function ($) {
                 let grilleIndex = $("#grilles-container .grille-container").length;
 
                 // Ajouter une nouvelle grille
-                $("#add-grille").click(function() {
+                $("#add-grille").click(function () {
                     const newGrille = <?= json_encode(self::render_single_grille_template($fixed_prestations)); ?>;
                     $("#grilles-container").append(newGrille.replace(/__INDEX__/g, grilleIndex));
                     grilleIndex++;
                 });
 
                 // Ajouter une nouvelle ligne
-                $(document).on("click", ".add-line", function() {
+                $(document).on("click", ".add-line", function () {
                     const parent = $(this).closest(".grille-container");
                     const grilleIndex = parent.data("index");
                     const lineIndex = parent.find(".line-row").length;
@@ -244,12 +282,12 @@ class RC_Settings_Page {
                 });
 
                 // Supprimer une ligne
-                $(document).on("click", ".remove-line", function() {
+                $(document).on("click", ".remove-line", function () {
                     $(this).closest(".line-row").remove();
                 });
 
                 // Supprimer une grille
-                $(document).on("click", ".remove-grille", function() {
+                $(document).on("click", ".remove-grille", function () {
                     $(this).closest(".grille-container").remove();
                 });
             });
@@ -504,98 +542,133 @@ class RC_Settings_Page {
     }
 
 
-    private static function get_general_settings() {
+    private static function get_general_settings()
+    {
         return [
-            // Section : Paramètres généraux
+            // Section : Vos informations API
             [
-                'title' => __('Paramètres Relais Colis', 'relais-colis-woocommerce'),
-                'type'  => 'title',
-                'id'    => 'rc_settings_title',
+                'title' => __('Vos informations d\'API', 'relais-colis-woocommerce'),
+                'type' => 'title',
+                'desc' => __('Entrez votre clé d’activation pour synchroniser vos informations.', 'relais-colis-woocommerce'),
+                'id' => 'rc_api_title',
             ],
-
             // Mode Live/Test
             [
-                'title'    => __('Mode Live/Test', 'relais-colis-woocommerce'),
-                'desc'     => __('Basculer entre le mode Live (coché) et Test (décoché).', 'relais-colis-woocommerce'),
-                'id'       => 'rc_mode_test',
-                'default'  => 'no',
-                'type'     => 'checkbox',
+                'title' => __('Mode Live/Test', 'relais-colis-woocommerce'),
+                'desc' => __('Basculer entre le mode Live (coché) et Test (décoché).', 'relais-colis-woocommerce'),
+                'id' => 'rc_mode_test',
+                'default' => 'no',
+                'type' => 'checkbox',
+            ],
+            // Clé d'activation
+            [
+                'title' => __('Clé d’activation', 'relais-colis-woocommerce'),
+                'id' => 'rc_api_key',
+                'type' => 'text',
+                'default' => '',
+                'desc_tip' => __('Votre clé d’activation C2C ou B2C.', 'relais-colis-woocommerce'),
+            ],
+            // Boutons Extraire et rafraichir
+            [
+                'type' => 'rc_action_buttons',
+                'id' => 'rc_action_buttons',
+            ],
+            [
+                'type' => 'sectionend',
+                'id' => 'rc_api_section_end',
             ],
 
+            // Section : Options B2C
+            [
+                'title' => __('Options B2C', 'relais-colis-woocommerce'),
+                'type' => 'title',
+                'desc' => __('Configurez les options incluses votre compte B2C.', 'relais-colis-woocommerce'),
+                'id' => 'rc_b2c_title',
+            ],
+            [
+                'type' => 'sectionend',
+                'id' => 'rc_b2c_section_end',
+            ],
+
+            // Section : Paramètres RC
+            [
+                'title' => __('Paramètres Relais Colis', 'relais-colis-woocommerce'),
+                'type' => 'title',
+                'id' => 'rc_settings_title',
+            ],
             // Unités de poids
             [
-                'title'    => __('Unités de poids', 'relais-colis-woocommerce'),
-                'desc'     => __('Sélectionnez l\'unité de poids à utiliser.', 'relais-colis-woocommerce'),
-                'id'       => 'rc_weight_unit',
-                'type'     => 'select',
-                'options'  => [
+                'title' => __('Unités de poids', 'relais-colis-woocommerce'),
+                'desc' => __('Sélectionnez l\'unité de poids à utiliser.', 'relais-colis-woocommerce'),
+                'id' => 'rc_weight_unit',
+                'type' => 'select',
+                'options' => [
                     'g' => __('Grammes (g)', 'relais-colis-woocommerce'),
                     'dg' => __('Décigrammes (dg)', 'relais-colis-woocommerce'),
                     'kg' => __('Kilogrammes (kg)', 'relais-colis-woocommerce'),
-                    'lb' => __('Livres (lb)', 'relais-colis-woocommerce'),
                 ],
-                'default'  => 'g',
-                'class'    => 'wc-enhanced-select',
+                'default' => 'g',
+                'class' => 'wc-enhanced-select',
                 'desc_tip' => true,
             ],
-
             // Unités de longueur
             [
-                'title'    => __('Unités de longueur', 'relais-colis-woocommerce'),
-                'desc'     => __('Sélectionnez l\'unité de longueur à utiliser.', 'relais-colis-woocommerce'),
-                'id'       => 'rc_length_unit',
-                'type'     => 'select',
-                'options'  => [
+                'title' => __('Unités de longueur', 'relais-colis-woocommerce'),
+                'desc' => __('Sélectionnez l\'unité de longueur à utiliser.', 'relais-colis-woocommerce'),
+                'id' => 'rc_length_unit',
+                'type' => 'select',
+                'options' => [
                     'mm' => __('Millimètres (mm)', 'relais-colis-woocommerce'),
                     'cm' => __('Centimètres (cm)', 'relais-colis-woocommerce'),
                     'dm' => __('Décimètres (dm)', 'relais-colis-woocommerce'),
                     'm' => __('Mètres (m)', 'relais-colis-woocommerce'),
                     'in' => __('Pouces (in)', 'relais-colis-woocommerce'),
                 ],
-                'default'  => 'cm',
-                'class'    => 'wc-enhanced-select',
+                'default' => 'cm',
+                'class' => 'wc-enhanced-select',
                 'desc_tip' => true,
             ],
-
             // Format d’étiquette
             [
-                'title'    => __('Format d’étiquette', 'relais-colis-woocommerce'),
-                'desc'     => __('Choisissez le format d’étiquette à imprimer.', 'relais-colis-woocommerce'),
-                'id'       => 'rc_label_format',
-                'type'     => 'select',
-                'options'  => [
+                'title' => __('Format d’étiquette', 'relais-colis-woocommerce'),
+                'desc' => __('Choisissez le format d’étiquette à imprimer.', 'relais-colis-woocommerce'),
+                'id' => 'rc_label_format',
+                'type' => 'select',
+                'options' => [
                     'A4' => __('Format A4', 'relais-colis-woocommerce'),
                     'A5' => __('Format A5', 'relais-colis-woocommerce'),
                     'carre' => __('Format Carré', 'relais-colis-woocommerce'),
                     '10x15' => __('Format 10x15', 'relais-colis-woocommerce'),
                 ],
-                'default'  => 'A4',
+                'default' => 'A4',
             ],
-
             [
                 'type' => 'sectionend',
-                'id'   => 'rc_settings_section_end',
+                'id' => 'rc_settings_section_end',
             ],
         ];
     }
 
-
-    private static function get_prestations_settings() {
+    /**
+     * @return array
+     */
+    private static function get_prestations_settings(): array
+    {
         return [
             // Section : Prestations
             [
                 'title' => __('Prestations', 'relais-colis-woocommerce'),
-                'type'  => 'title',
-                'desc'  => __('Ajoutez des prestations avec un seuil de gratuité.', 'relais-colis-woocommerce'),
-                'id'    => 'rc_prestations_title',
+                'type' => 'title',
+                'desc' => __('Ajoutez des prestations avec un seuil de gratuité.', 'relais-colis-woocommerce'),
+                'id' => 'rc_prestations_title',
             ],
             [
                 'type' => 'rc_prestations',
-                'id'   => 'rc_prestations',
+                'id' => 'rc_prestations',
             ],
             [
                 'type' => 'sectionend',
-                'id'   => 'rc_prestations_section_end',
+                'id' => 'rc_prestations_section_end',
             ],
             [
                 'title' => __('Grilles Tarifaires', 'relais-colis-woocommerce'),
@@ -693,8 +766,6 @@ class RC_Settings_Page {
                 'id'   => 'rc_informations_section_end',
             ],
         ];
-
-        return $settings;
     }
 
 }
