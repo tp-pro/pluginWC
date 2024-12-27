@@ -1,176 +1,181 @@
 /* Conteneur principal */
 #rc-prestations-editor,
 #rc-grilles-tarifaires {
-  margin: 20px 0;
-  padding: 15px;
-  border: 1px solid #ccc;
-  border-radius: 5px;
-  background-color: #f9f9f9;
+    margin: 20px 0;
+    padding: 15px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    background-color: #f9f9f9;
 }
 
 /* Boutons d'ajout */
 #rc-prestations-editor #add-prestation,
 #rc-grilles-tarifaires #add-grille {
-  margin-bottom: 15px;
-  background-color: #007cba;
-  color: #fff;
-  border: none;
-  padding: 10px 15px;
-  border-radius: 3px;
-  cursor: pointer;
+    margin-bottom: 15px;
+    background-color: #007cba;
+    color: #fff;
+    border: none;
+    padding: 10px 15px;
+    border-radius: 3px;
+    cursor: pointer;
 }
 
 #rc-prestations-editor #add-prestation:hover,
 #rc-grilles-tarifaires #add-grille:hover {
-  background-color: #005a9e;
+    background-color: #005a9e;
 }
 
 /* Conteneur des prestations et grilles */
 .grille-container {
-  border: 1px solid #ddd;
-  border-radius: 5px;
-  margin-bottom: 15px;
-  width: calc(100% - 42px);
-  padding: 15px;
-  background-color: #fff;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    margin-bottom: 15px;
+    width: calc(100% - 42px);
+    padding: 15px;
+    background-color: #fff;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
+
 #grilles-container {
-  display: flex;
-  gap: 20px;
-  flex-wrap: wrap;
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
 }
+
 #prestations-container {
-  display: table;
-  width: 100%;
+    display: table;
+    width: 100%;
 }
+
 .prestation-container {
-  display: table-row;
+    display: table-row;
 }
 
 .line-g {
-  display: table-cell;
+    display: table-cell;
 }
 
 .prestah {
-  display: table-row;
+    display: table-row;
 }
+
 .prestah span {
-  display: table-cell;
+    display: table-cell;
 }
 
 /* Titre et bouton de suppression */
 .prestation-container h4,
 .grille-container h4 {
-  font-size: 18px;
-  margin-bottom: 10px;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
+    font-size: 18px;
+    margin-bottom: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
 
 .prestation-container h4 button,
 .grille-container h4 button {
-  background: none;
-  border: none;
-  color: #e74c3c;
-  font-size: 20px;
-  cursor: pointer;
+    background: none;
+    border: none;
+    color: #e74c3c;
+    font-size: 20px;
+    cursor: pointer;
 }
 
 .prestation-container h4 button:hover,
 .grille-container h4 button:hover {
-  color: #c0392b;
+    color: #c0392b;
 }
 
 /* Labels et champs */
 .prestation-container label,
 .grille-container label {
-  display: block;
-  font-weight: bold;
-  margin-bottom: 5px;
+    display: block;
+    font-weight: bold;
+    margin-bottom: 5px;
 }
 
 .grille-container input[type="text"],
 .grille-container select,
 .grille-container input[type="checkbox"] {
-  display: block;
-  width: 100%;
-  padding: 8px;
-  margin-bottom: 10px;
-  border: 1px solid #ccc;
-  border-radius: 3px;
-  box-sizing: border-box;
+    display: block;
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 3px;
+    box-sizing: border-box;
 }
+
 .prestation-container select,
 .prestation-container input[type="checkbox"],
 .prestation-container input[type="text"] {
-  width: 80%;
+    width: 80%;
 }
 
 .prestation-container input[type="checkbox"],
 .grille-container input[type="checkbox"] {
-  width: auto;
-  margin-right: 5px;
+    width: auto;
+    margin-right: 5px;
 }
 
 /* Boutons secondaires */
 .prestation-container .add-line,
 .grille-container .add-line {
-  background-color: #007cba;
-  color: #fff;
-  border: none;
-  padding: 5px 10px;
-  border-radius: 3px;
-  margin-top: 10px;
-  cursor: pointer;
+    background-color: #007cba;
+    color: #fff;
+    border: none;
+    padding: 5px 10px;
+    border-radius: 3px;
+    margin-top: 10px;
+    cursor: pointer;
 }
 
 .prestation-container .add-line:hover,
 .grille-container .add-line:hover {
-  background-color: #005a9e;
+    background-color: #005a9e;
 }
 
 /* Conteneur des lignes */
 .lines-container .line-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
 }
 
 .lines-container .line-row input {
-  flex: 1;
+    flex: 1;
 }
 
 .lines-container .line-row button {
-  flex-shrink: 0;
+    flex-shrink: 0;
 }
 
 .form-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-bottom: 20px;
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
 }
 
 .form-table th,
 .form-table td {
-  padding: 10px;
-  border: 1px solid #ddd;
+    padding: 10px;
+    border: 1px solid #ddd;
 }
 
 .line-row td {
-  text-align: left;
+    text-align: left;
 }
 
 .add-line,
 .remove-line {
-  margin-top: 10px;
-  cursor: pointer;
+    margin-top: 10px;
+    cursor: pointer;
 }
 
 .grille-header {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
 }
